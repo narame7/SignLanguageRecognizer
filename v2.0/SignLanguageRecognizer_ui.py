@@ -645,6 +645,8 @@ class MyVideoCapture:
 
     frame = None
 
+    start_time = 0
+
     def generate_frames(self):        
 
         frame_num = 0
@@ -682,6 +684,8 @@ class MyVideoCapture:
     def __init__(self, video_source=0):
         # Open the video source
         self.vid = cv2.VideoCapture(video_source)
+
+        self.start_time = time.time()
 
         if not self.vid.isOpened():
             raise ValueError("Unable to open video source", video_source)
@@ -727,8 +731,6 @@ class MyVideoCapture:
 
 
     def get_frame(self, show_keypoint, threshold):
-
-        start_time = time.time()        
         
         t = time.time()
         response = next(self.responses)
@@ -900,7 +902,7 @@ class MyVideoCapture:
 
         result_frame = draw_sign_on_frame(local_frame, self.text, font_size)
 
-        self.actual_fps = 1.0 / (time.time() - start_time)
+        self.actual_fps = self.frame_num / (time.time() - self.start_time)
 
         # Return a boolean success flag and the current frame converted to BGR
         return (cv2.cvtColor(result_frame, cv2.COLOR_BGR2RGB), [predicted_signs, predicted_conf, self.actual_fps, op_fps, self.frame_num, self.handStatusStr])
