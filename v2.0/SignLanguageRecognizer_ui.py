@@ -44,6 +44,7 @@ from collections import deque
 
 import copy
 
+import math
 
 font_size = 30
 font_color = (255,255,255)
@@ -304,6 +305,21 @@ def rightHandUp(pose):
 
     return arm_angle > -0.8
 
+def rightArmAngle(pose):
+    result = np.arctan2(pose[4][1] - pose[3][1], pose[4][0] - pose[3][0]) - np.arctan2(pose[2][1] - pose[3][1], pose[2][0] - pose[3][0])
+    if result > math.pi:
+        result = 2 * math.pi - result
+
+    return np.abs(result)
+
+def leftArmAngle(pose):
+    result = np.arctan2(pose[7][1] - pose[6][1], pose[7][0] - pose[6][0]) - np.arctan2(pose[5][1] - pose[6][1], pose[5][0] - pose[6][0])
+    if result > math.pi:
+        result = 2 * math.pi - result
+
+    return np.abs(result)
+
+
 def leftHandUp(pose):
 
     if(pose[6][0] - pose[7][0] != 0):
@@ -322,7 +338,7 @@ def leftHandUp(pose):
         return False
 
 
-    return arm_angle > -0.8
+    return arm_angle > -0.3
 
 
 def handUp(pose, rHand, lHand):
@@ -332,6 +348,12 @@ def handUp(pose, rHand, lHand):
 
     if (averageY(rHand) > height or averageY(rHand) == 0) and (averageY(lHand) > height or averageY(lHand) == 0):
         return False
+
+    if(rightArmAngle(pose) < 1.0 or leftArmAngle(pose) < 1.0):
+        return True
+    else:
+        return False
+
 
     if leftHandUp(pose) or rightHandUp(pose):
         return True
@@ -753,6 +775,9 @@ class MyVideoCapture:
             rHand = rHands[personIdx]
             face = faces[personIdx]
 
+            if show_keypoint:
+                local_frame = draw_keypoints(local_frame, pose, face, rHand, lHand)
+
             # if handUp(persons[personIdx]):
             #    isHandUp = "DOWN"
             # else:
@@ -871,7 +896,7 @@ class MyVideoCapture:
 
         #draw.text((width/2 - (self.text_size[0]/2),height-100), self.text, font=unicode_font, fill=font_color)
 
-        #print(self.text)
+
         result_frame = draw_sign_on_frame(local_frame, self.text, font_size)
 
         self.actual_fps = 1.0 / (time.time() - start_time)
@@ -885,6 +910,25 @@ class MyVideoCapture:
         if self.vid.isOpened():
             self.vid.release()
 
+def draw_keypoints(frame, pose, face, rHand, lHand):
+   
+    for idx in range(pose.shape[0]):
+        cv2.circle(frame,(int(pose[idx][0] / 656 * width),int(pose[idx][1] / 368 * height)), 5, (0,0,255), -1)
+
+    
+
+    for idx in range(face.shape[0]):
+        cv2.circle(frame,(int(face[idx][0] / 656 * width),int(face[idx][1] / 368 * height)), 3, (255,0,0), -1)
+
+    for idx in range(rHand.shape[0]):
+        cv2.circle(frame,(int(rHand[idx][0] / 656 * width),int(rHand[idx][1] / 368 * height)), 3, (0,255,0), -1)
+
+    for idx in range(lHand.shape[0]):
+        cv2.circle(frame,(int(lHand[idx][0] / 656 * width),int(lHand[idx][1] / 368 * height)), 3, (0,255,0), -1)
+
+
+
+    return frame
 
 def draw_sign_on_frame(frame, text, fontsize):
 
