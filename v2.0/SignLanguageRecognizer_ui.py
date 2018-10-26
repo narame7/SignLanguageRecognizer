@@ -346,10 +346,11 @@ def handUp(pose, rHand, lHand):
     # print("rHand Confidence: ", averageY(rHand))
     # print("lHand Confidence: ", averageY(lHand))
 
-    if (averageY(rHand) > height or averageY(rHand) == 0) and (averageY(lHand) > height or averageY(lHand) == 0):
+    if (averageY(rHand) > height or averageY(rHand) == 0) or (averageY(lHand) > height or averageY(lHand) == 0):
         return False
 
     if(rightArmAngle(pose) < 1.0 or leftArmAngle(pose) < 1.0):
+        print(leftArmAngle(pose), " | ", rightArmAngle(pose))
         return True
     else:
         return False
